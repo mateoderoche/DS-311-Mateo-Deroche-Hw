@@ -35,10 +35,11 @@ a. Report the number of variables and observations in the data set.
 
 ```{r}
 # Enter your code here!
-
+num_variables <- ncol(mtcars)
+num_observations <- nrow(mtcars)
 
 # Answer:
-print("There are total of _____ variables and _____ observations in this data set.")
+print(paste("There are total of", num_variables, "variables and", num_observations, "observations in this data set."))
 ```
 
 
@@ -47,10 +48,17 @@ b. Print the summary statistics of the data set and report how many discrete and
 
 ```{r}
 # Enter your code here!
+summary_stats <- summary(mtcars)
 
+discrete_variables <- c("cyl", "vs", "am", "gear", "carb")
+variables <- colnames(mtcars)
+continuous_variables <- setdiff(variables, discrete_variables)
+
+num_discrete_variables <- length(discrete_variables)
+num_continuous_variables <- length(continuous_variables)
 
 # Answer:
-print("There are _____ discrete variables and _____ continuous variables in this data set.")
+print(paste("There are total of", discrete_variables, "variables and", num_continuous_variables, "observations in this data set."))
 ```
 
 
@@ -59,11 +67,14 @@ c. Calculate the mean, variance, and standard deviation for the variable **mpg**
 
 ```{r}
 # Enter your code here!
+mpg_data <- mtcars$mpg
+m <- mean(mpg_data)
+v <- var(mpg_data)
+s <- sd(mpg_data)
 
 
+print(paste("The average of Mile Per Gallon from this data set is", m, "with variance", v, "and standard deviation", s, "."))
 
-
-# print(paste("The average of Mile Per Gallon from this data set is ",  , " with variance ",  , " and standard deviation",  , "."))
 ```
 
 
@@ -72,10 +83,17 @@ d. Create two tables to summarize 1) average mpg for each cylinder class and 2) 
 
 ```{r}
 # Enter your code here!
+mpg_by_cyl <- tapply(mtcars$mpg, mtcars$cyl, mean)
+mpg_by_gear <- tapply(mtcars$mpg, mtcars$gear, sd)
 
+mpg_by_cyl_df <- data.frame(Cylinder_Class = as.numeric(names(mpg_by_cyl)), Average_MPG = mpg_by_cyl)
+mpg_by_gear_df <- data.frame(Gear_Class = as.numeric(names(mpg_by_gear)), Standard_Deviation_MPG = mpg_by_gear)
 
+print("1) Average MPG for each cylinder class:")
+print(mpg_by_cyl_df)
 
-
+print("\n2) Standard Deviation of MPG for each gear class:")
+print(mpg_by_gear_df)
 ```
 
 
@@ -84,9 +102,16 @@ e. Create a crosstab that shows the number of observations belong to each cylind
 
 ```{r}
 # Enter your code here!
+crosstab <- table(mtcars$cyl, mtcars$gear)
+max_combination <- which.max(crosstab)
+max_count <- crosstab[max_combination]
 
+print("Combination with the most observations:")
+print(paste("Cylinder Class: ", rownames(crosstab)[max_combination[1]]))
+print(paste("Gear Class: ", colnames(crosstab)[max_combination[2]]))
+print(paste("Number of Observations: ", max_count))
 
-print("The most common car type in this data set is car with ____ cylinders and ____ gears. There are total of _____ cars belong to this specification in the data set.")
+print(paste("The combination with the most observations is", rownames(crosstab)[max_combination[1]], "cylinders and", colnames(crosstab)[max_combination[2]], "gears, with", max_count, "observations."))
 ```
 
 
@@ -106,7 +131,12 @@ data("PlantGrowth")
 head(PlantGrowth)
 
 # Enter your code here!
+boxplot(weight ~ group, data = PlantGrowth,
+        main = "Weight of Plants by Group",
+        xlab = "Group",
+        ylab = "Weight")
 
+group_labels <- levels(PlantGrowth$group)
 
 ```
 
@@ -119,10 +149,13 @@ Result:
 b. Using the **mtcars** data set, plot the histogram for the column **mpg** with 10 breaks. Give labels to the title, x-axis, and y-axis on the graph. Report the most observed mpg class from the data set.
 
 ```{r}
+hist(mtcars$mpg, breaks = 10, main = "MPG Histogram", xlab = "Miles Per Gallon (MPG)", ylab = "Frequency")
+hist_data <- hist(mtcars$mpg, breaks = 10, plot = FALSE)
+most_observed_mpg_class <- hist_data$mids[which.max(hist_data$counts)]
+abline(v = most_observed_mpg_class, col = "red")
 
 
-
-print("Most of the cars in this data set are in the class of ______ mile per gallon.")
+print(paste("Most of the cars in this data set are in the class of", most_observed_mpg_class, "mile per gallon."))
 ```
 
 
@@ -137,8 +170,8 @@ data("USArrests")
 head(USArrests)
 
 # Enter your code here!
-
-
+pairs(USArrests, main = "Pairs Plot of USArrests Dataset")
+plot(USArrests$Murder, USArrests$Assault, main = "Scatter Plot of Murder vs. Assault", xlab = "Murder", ylab = "Assault")
 ```
 
 Result:
@@ -172,7 +205,9 @@ a. Create your own descriptive statistics and aggregation tables to summarize th
 head(housingData)
 
 # Enter your code here!
-
+market_value_stats <- summary(housingData$Market.Value.per.SqFt)
+agg_table <- aggregate(Market.Value.per.SqFt ~ Boro, data = housingData, FUN = mean)
+year_built_counts <- table(housingData$Year.Built)
 
 ```
 
@@ -180,8 +215,11 @@ b. Create multiple plots to demonstrates the correlations between different vari
 
 ```{r}
 # Enter your code here!
+plot(housingData$Year.Built, housingData$Market.Value.per.SqFt, xlab = "Year Built", ylab = "Market Value per SqFt", main = "Scatter Plot: Market.Value.per.SqFt vs. Year.Built")
 
-
+par(mar = c(5, 10, 4, 2))
+plot(housingData$Neighborhood, housingData$Market.Value.per.SqFt, xlab = "Neighborhood", ylab = "Market Value per SqFt", main = "Scatter Plot: Market.Value.per.SqFt vs. Neighborhood")
+axis(1, at = 1:nlevels(factor(housingData$Neighborhood)), labels = levels(factor(housingData$Neighborhood)), las = 2)
 ```
 
 c. Write a summary about your findings from this exercise.
