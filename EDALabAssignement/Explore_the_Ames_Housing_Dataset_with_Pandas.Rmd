@@ -1,0 +1,251 @@
+```{r}
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+
+library(ggplot2)
+
+ggplot(data, aes(x = your_x_variable, y = your_y_variable)) +
+  geom_point() +
+  labs(title = "Your Plot Title", x = "X Axis Label", y = "Y Axis Label")
+
+if (!requireNamespace("httr", quietly = TRUE)) {
+  install.packages("httr")
+}
+
+if (!requireNamespace("jsonlite", quietly = TRUE)) {
+  install.packages("jsonlite")
+}
+
+library(httr)
+library(jsonlite)
+
+json_url <- 'https://data.austintexas.gov/resource/9t4d-g238.json'
+
+response <- httr::GET(json_url)
+
+animals <- jsonlite::fromJSON(httr::content(response, "text"), flatten = TRUE)
+
+print(class(animals))
+
+head(animals, 10)
+
+str(animals)
+
+summary(animals)
+
+color_counts <- table(animals$color)
+
+print(color_counts)
+```
+
+Question 1
+
+```{r}
+animal_type_values <- table(animals$animal_type)
+
+barplot(animal_type_values, horiz = TRUE, col = "skyblue",
+        main = "Animal Type Counts", xlab = "Count",
+        ylab = "Animal Type")
+
+text(animal_type_values, length(animal_type_values):1, labels = animal_type_values, pos = 4, cex = 0.8, col = "black")
+
+hist(animals$animal_type, main = "Animal Type Histogram",
+     xlab = "Animal Type", ylab = "Frequency",
+     col = "skyblue", border = "black")
+```
+     
+Question 2
+
+```{r}
+head(animals)
+
+mask_other_animals <- animals$animal_type == 'Other'
+
+other_animal_breed_counts <- table(animals[mask_other_animals, 'breed'])
+
+print(other_animal_breed_counts)
+
+mask_other_animals <- animals$animal_type == 'Other'
+
+other_animals_subset <- animals[mask_other_animals, ]
+
+print(other_animals_subset)
+```
+
+Question 3
+
+```{r}
+age_counts <- table(animals$age_upon_outcome)
+
+print(age_counts)
+
+one_year <- function(age) {
+  ifelse(age == '1 year', '1 years', age)
+}
+
+animals$age_upon_outcome <- one_year(animals$age_upon_outcome)
+
+if (!requireNamespace("dplyr", quietly = TRUE)) {
+  install.packages("dplyr")
+}
+library(dplyr)
+
+one_year <- function(age) {
+  ifelse(age == '1 year', '1 years', age)
+}
+
+animals <- mutate(animals, new_age1 = one_year(age_upon_outcome))
+
+new_age_counts <- table(animals$new_age1)
+
+print(new_age_counts)
+
+unique_sex_values <- unique(animals$sex_upon_outcome)
+
+print(unique_sex_values)
+
+sex_mapper <- function(status) {
+  ifelse(status %in% c('Neutered Male', 'Intact Male'), 'Male',
+         ifelse(status %in% c('Spayed Female', 'Intact Female'), 'Female', 'Unknown'))
+}
+
+animals$sex_mapped <- sex_mapper(animals$sex_upon_outcome)
+
+```
+
+Lambda Function
+
+```{r}
+mask_other_animals <- animals$animal_type == 'Other'
+
+other_animals_subset <- animals[mask_other_animals, ]
+
+print(other_animals_subset)
+
+animal_type_counts <- table(animals$animal_type)
+
+print(animal_type_counts)
+
+print(class(NA))
+
+
+animals <- mutate(animals, animal_type_filtered = ifelse(animal_type == 'Other', NA, animal_type))
+animal_type_filtered_counts <- table(animals$animal_type_filtered, useNA = "ifany")
+print(animal_type_filtered_counts)
+
+```
+
+Handling Missing Data
+
+```{r}
+animals_clean <- data.frame(animals)
+```
+
+Fill with a Relevant Value
+
+```{r}
+animals_name_filled <- data.frame(animals_clean)
+
+animals_name_filled$name <- replace(animals_name_filled$name, is.na(animals_name_filled$name), 'np.nan')
+
+print(head(animals_name_filled$name, 10))
+
+print(head(animals_clean))
+
+animals_only_names <- subset(animals_clean, select = 'name')
+animals_only_names <- replace(animals_only_names, is.na(animals_only_names), 'UNKNOWN')
+
+print(head(animals_only_names$name, 10))
+
+animals_clean$name <- animals_only_names$name
+
+print(head(animals_clean))
+
+```
+
+Fill with a Reasonable Value
+
+```{r}
+# Install and load necessary R packages
+if (!requireNamespace("dplyr", quietly = TRUE)) {
+  install.packages("dplyr")
+}
+if (!requireNamespace("forcats", quietly = TRUE)) {
+  install.packages("forcats")
+}
+library(dplyr)
+library(forcats)
+
+outcome_subtype_counts <- table(animals_clean$outcome_subtype, useNA = "ifany")
+
+print(outcome_subtype_counts)
+
+outcome_subtype_ordered <- names(sort(outcome_subtype_counts, decreasing = TRUE))
+
+print(outcome_subtype_ordered)
+
+most_common_outcome_subtype <- outcome_subtype_ordered[1]
+
+print(most_common_outcome_subtype)
+
+animals_clean$outcome_subtype <- fct_explicit_na(animals_clean$outcome_subtype, na_level = most_common_outcome_subtype)
+print(head(animals_clean))
+
+```
+
+Specify That the Data Were Missing
+
+```{r}
+# Assuming 'animals_clean' is the data frame obtained from the JSON data
+# Assuming 'outcome_subtype' and 'outcome_type' are columns in the data frame
+
+# Create a logical vector indicating missing values in 'outcome_subtype'
+missing_outcome_subtypes <- is.na(animals_clean$outcome_subtype)
+
+# Print the logical vector
+print(missing_outcome_subtypes)
+
+# Create a new column 'outcome_subtype_missing' with the logical vector
+animals_clean <- mutate(animals_clean, outcome_subtype_missing = missing_outcome_subtypes)
+
+# Print the first few rows of the updated 'animals_clean' data frame
+print(head(animals_clean))
+
+# Print the total count of 'outcome_type' excluding missing values
+print(sum(!is.na(animals_clean$outcome_type)))
+
+# Drop rows with missing values in 'outcome_type'
+animals_clean <- filter(animals_clean, !is.na(outcome_type))
+
+# Print the first few rows of the updated 'animals_clean' data frame
+print(head(animals_clean))
+
+```
+
+Drop Missing Data
+
+```{r}
+outcome_type_counts <- table(animals_clean$outcome_type, useNA = "ifany")
+
+print(sum(outcome_type_counts))
+
+animals_clean <- na.omit(animals_clean, cols = "outcome_type")
+
+print(head(animals_clean))
+
+```
+
+Comparing Before and After
+
+```{r}
+str(animals_clean)
+
+animals_clean <- data.frame(animals_clean, row.names = NULL)
+
+str(animals_clean)
+
+```
+
+
+
